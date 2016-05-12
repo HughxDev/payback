@@ -6,14 +6,15 @@
   - Using business card for personal expenses out of convenience. Need to restore the account to proper balance.
 
   ## Limitations
-  - Due to lack of descriptions/tagging in Citizens Bank(?), no way to know whether en expense should have been refunded or not.
-  - 
+  1. Due to lack of descriptions/tagging in Citizens Bank, no way to know whether en expense should have been refunded or not.
+  2. If you coincidentally get paid the same amount as an amount previously spent, it will not show up. 
 
   ## Features
   - Citizens CSV Export parsing
 
   ## Wishlist
   - Simple CSV/JSON Export parsing
+  - To solve limitation #2, allow user to pair transactions manually to cancel them out, rather than automatically?
 */
 // (function () {
 "use strict";
@@ -23,7 +24,13 @@ var credits = [];
 var debits = [];
 var unique;
 
+var $table = $( '#table' );
 var $tableHeaderRow = $( '#table-header-row' );
+var $tableBody = $( '#table-body' );
+var $info = $( '#info' );
+var $numDebits = $( '#num-debits' );
+var $numCredits = $( '#num-credits' );
+var $numUnique = $( '#num-unique' );
  
 function handleFileSelect( evt ) {
   var file = evt.target.files[0];
@@ -48,7 +55,7 @@ function handleFileSelect( evt ) {
           console.log( 'headers', headers );
 
           headers.forEach( function ( element, index, array ) {
-            $tableHeaderRow.append( '<th>' + element + '</th>' );
+            $tableHeaderRow.append( '<th id="th-' + ( index + 1 ) + '">' + element + '</th>' );
           } );
         }
 
@@ -60,6 +67,9 @@ function handleFileSelect( evt ) {
 
         // console.log( 'datum', datum );
       }
+
+      $numCredits.html( credits.length );
+      $numDebits.html( debits.length );
 
       console.log( 'credits', credits );
       console.log( 'debits', debits );
@@ -83,11 +93,33 @@ function handleFileSelect( evt ) {
       } );
 
       console.log( 'unique', unique );
-    }
-  });
+
+      $numUnique.html( unique.length );
+
+      $info.prop( 'hidden', false );
+
+      unique.forEach( function ( debit, index, debits ) {
+        var tr = document.createElement( 'tr' );
+
+        var td;
+
+        headers.forEach( function ( header, index, headers ) {
+          td = document.createElement( 'td' );
+
+          td.innerHTML = debit[header];
+
+          tr.appendChild( td );
+        } );
+
+        $tableBody.append( tr );
+      } ); // unique.forEach
+
+      $table.DataTable();
+    } // complete
+  }); // parse
 }
 
 $(document).ready(function(){
-  $("#csv-file").change( handleFileSelect );
+  $( "#csv-file" ).change( handleFileSelect );
 });
 // })();

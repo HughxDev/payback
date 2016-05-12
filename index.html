@@ -2,17 +2,23 @@
 <html>
 <head>
   <title>Payback</title>
+  <link rel="stylesheet" href="bower_components/datatables.net-dt/css/jquery.dataTables.min.css" />
   <link rel="stylesheet" href="styles/index.css" />
 </head>
 <body>
-  <input id="csv-file" type="file" />
+  <input id="csv-file" name="csvFile" type="file" accept="text/csv" />
+
+  <p id="info" hidden="">Out of <output id="num-debits"></output> total expenses, <output id="num-unique"></output> had no equivalent amounts credited back to the account (after searching <output id="num-credits"></output> total income transactions).</p>
+
   <table id="table">
     <thead id="table-header">
       <tr id="table-header-row"></tr>
     </thead>
     <tbody id="table-body"></tbody>
   </table>
+
   <script src="bower_components/jquery/dist/jquery.min.js"></script>
+  <script src="bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
   <script src="bower_components/papaparse/papaparse.js"></script>
   <script src="scripts/index.js"></script>
 </body>

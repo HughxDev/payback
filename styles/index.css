@@ -6,5 +6,12 @@ th {
   font-weight: normal;
   color: white;
   background: gray;
+}
+
+th, td {
   padding: 10px;
+}
+
+output {
+  font-weight: bold;
 }
