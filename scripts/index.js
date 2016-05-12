@@ -22,6 +22,8 @@ var data;
 var credits = [];
 var debits = [];
 var unique;
+
+var $tableHeaderRow = $( '#table-header-row' );
  
 function handleFileSelect( evt ) {
   var file = evt.target.files[0];
@@ -31,6 +33,7 @@ function handleFileSelect( evt ) {
     dynamicTyping: true,
     complete: function ( results ) {
       var datum;
+      var headers;
 
       data = results.data;
 
@@ -38,6 +41,16 @@ function handleFileSelect( evt ) {
 
       for ( var i = 0; i < data.length; i++ ) {
         datum = data[i];
+
+        if ( i === 0 ) {
+          headers = Object.keys( datum );
+
+          console.log( 'headers', headers );
+
+          headers.forEach( function ( element, index, array ) {
+            $tableHeaderRow.append( '<th>' + element + '</th>' );
+          } );
+        }
 
         if ( !!datum.Debits && !!!datum.Credits ) {
           debits.push( datum );

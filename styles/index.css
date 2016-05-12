@@ -1,0 +1,10 @@
+body {
+  font-family: sans-serif;
+}
+
+th {
+  font-weight: normal;
+  color: white;
+  background: gray;
+  padding: 10px;
+}
