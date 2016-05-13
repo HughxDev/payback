@@ -15,3 +15,13 @@ th, td {
 output {
   font-weight: bold;
 }
+
+.amount {
+  text-align: right;
+}
+
+/*----------------------*/
+
+.dataTables_length {
+  margin-bottom: 1em;
+}

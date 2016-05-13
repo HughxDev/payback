@@ -35,12 +35,13 @@ var $numUnique = $( '#num-unique' );
 function handleFileSelect( evt ) {
   var file = evt.target.files[0];
 
-  Papa.parse(file, {
+  Papa.parse( file, {
     header: true,
     dynamicTyping: true,
     complete: function ( results ) {
       var datum;
       var headers;
+      var excludeHeadersUI = [ 'Transaction Type', 'Account Type', 'Reference No.', 'Credits', 'Debits' ];
 
       data = results.data;
 
@@ -55,10 +56,15 @@ function handleFileSelect( evt ) {
           console.log( 'headers', headers );
 
           headers.forEach( function ( element, index, array ) {
-            $tableHeaderRow.append( '<th id="th-' + ( index + 1 ) + '">' + element + '</th>' );
+            if ( excludeHeadersUI.indexOf( element ) === -1 ) {
+              $tableHeaderRow.append( '<th id="th-' + ( index + 1 ) + '">' + element + '</th>' );
+            }
           } );
         }
 
+        /*
+          Alternatively: datum['Transaction Type'].toLowerCase().indexOf( 'debit' ) !== -1
+        */
         if ( !!datum.Debits && !!!datum.Credits ) {
           debits.push( datum );
         } else if ( !!datum.Credits && !!!datum.Debits ) {
@@ -66,7 +72,7 @@ function handleFileSelect( evt ) {
         }
 
         // console.log( 'datum', datum );
-      }
+      } // for
 
       $numCredits.html( credits.length );
       $numDebits.html( debits.length );
@@ -98,25 +104,44 @@ function handleFileSelect( evt ) {
 
       $info.prop( 'hidden', false );
 
-      unique.forEach( function ( debit, index, debits ) {
-        var tr = document.createElement( 'tr' );
+      // unique
+      debits
+        .forEach( function ( debit, index, debits ) {
+          var tr = document.createElement( 'tr' );
 
-        var td;
+          var td;
 
-        headers.forEach( function ( header, index, headers ) {
-          td = document.createElement( 'td' );
+          headers.forEach( function ( header, index, headers ) {
+            var cellContents;
 
-          td.innerHTML = debit[header];
+            if ( excludeHeadersUI.indexOf( header ) === -1 ) {
+              td = document.createElement( 'td' );
 
-          tr.appendChild( td );
-        } );
+              td.className = header.toLowerCase().replace( ' ', '-' );
 
-        $tableBody.append( tr );
-      } ); // unique.forEach
+              // https://github.com/openexchangerates/accounting.js
+              // bower install --save git@github.com:openexchangerates/accounting.js.git#master
+              if ( header === 'Amount' ) {
+                cellContents = debit[header].toFixed( 2 );
+              } else {
+                cellContents = debit[header];
+              }
 
-      $table.DataTable();
+              td.innerHTML = cellContents;
+
+              tr.appendChild( td );
+            }
+          } );
+
+          $tableBody.append( tr );
+        } ); // .forEach
+
+      $table.DataTable( {
+        "iDisplayLength": 100,
+        "order": [ [ 0, "desc" ] ]
+      } );
     } // complete
-  }); // parse
+  } ); // parse
 }
 
 $(document).ready(function(){
