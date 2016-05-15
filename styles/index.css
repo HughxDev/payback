@@ -20,6 +20,14 @@ output {
   text-align: right;
 }
 
+tr.selected {
+  background-color: gray;
+}
+
+tr {
+  cursor: pointer;
+}
+
 /*----------------------*/
 
 .dataTables_length {

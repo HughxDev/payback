@@ -27,10 +27,150 @@ var unique;
 var $table = $( '#table' );
 var $tableHeaderRow = $( '#table-header-row' );
 var $tableBody = $( '#table-body' );
+
 var $info = $( '#info' );
-var $numDebits = $( '#num-debits' );
-var $numCredits = $( '#num-credits' );
-var $numUnique = $( '#num-unique' );
+
+// var $selected = 
+
+// var $numDebits = $( '#num-debits' );
+// var $numCredits = $( '#num-credits' );
+// var $numUnique = $( '#num-unique' );
+
+function csvParsingComplete( results ) {
+  var datum;
+  var headers;
+  var excludeHeadersUI = [ 'Transaction Type', 'Account Type', 'Reference No.', 'Credits', 'Debits' ];
+
+  data = results.data;
+
+  // console.log( 'data', data );
+
+  for ( var i = 0; i < data.length; i++ ) {
+    datum = data[i];
+
+    if ( i === 0 ) {
+      headers = Object.keys( datum );
+
+      console.log( 'headers', headers );
+
+      headers.forEach( function ( element, index, array ) {
+        if ( excludeHeadersUI.indexOf( element ) === -1 ) {
+          $tableHeaderRow.append( '<th id="th-' + ( index + 1 ) + '" scope="col">' + element + '</th>' );
+        }
+      } );
+
+      // $tableHeaderRow.append( '<th scope="col">Personal Expense</th>' );
+    }
+
+    /*
+      Alternatively: datum['Transaction Type'].toLowerCase().indexOf( 'debit' ) !== -1
+    */
+    if ( !!datum.Debits && !!!datum.Credits ) {
+      debits.push( datum );
+    } else if ( !!datum.Credits && !!!datum.Debits ) {
+      credits.push( datum );
+    }
+
+    // console.log( 'datum', datum );
+  } // for
+
+  // $numCredits.html( credits.length );
+  // $numDebits.html( debits.length );
+
+  console.log( 'credits', credits );
+  console.log( 'debits', debits );
+
+  // http://stackoverflow.com/a/15912608/214325
+  unique = debits.filter( function ( transaction ) {
+    var expense = transaction.Debits;
+    var paidBack = false;
+
+    // return ( credits.indexOf( transaction ) == -1 );
+
+    for ( var i = 0; i < credits.length; i++ ) {
+      if ( expense === credits[i].Credits ) {
+        paidBack = true;
+
+        break;
+      }
+    }
+
+    return !paidBack;
+  } );
+
+  console.log( 'unique', unique );
+
+  // $numUnique.html( unique.length );
+
+  $info.prop( 'hidden', false );
+
+  // unique
+  debits
+    .forEach( function ( debit, index, debits ) {
+      // var tr = document.createElement( 'tr' );
+      var tr = $( '<tr></tr>' );
+      var td;
+      // var checkboxCell;
+
+      headers.forEach( function ( header, index, headers ) {
+        var cellContents;
+
+        if ( excludeHeadersUI.indexOf( header ) === -1 ) {
+          td = document.createElement( 'td' );
+
+          td.className = header.toLowerCase().replace( ' ', '-' );
+
+          // https://github.com/openexchangerates/accounting.js
+          // bower install --save git@github.com:openexchangerates/accounting.js.git#master
+          if ( header === 'Amount' ) {
+            cellContents = debit[ header ].toFixed( 2 );
+          } else {
+            cellContents = debit[ header ];
+          }
+
+          td.innerHTML = cellContents;
+
+          tr.append( td );
+        }
+      } );
+
+      // checkboxCell = $( '<td id="personal-expense-yn-' + ( index + 1 ) + ' class="personal-expense-yn"><input name="personalExpenseYN" type="checkbox" value="" /></td>' );
+
+      // tr.append( checkboxCell );
+
+      $tableBody.append( tr );
+    } ) // .forEach
+  ; // debits
+
+  $table = $table.DataTable( {
+    // "iDisplayLength": 100,
+    "order": [ [ 0, "desc" ] ],
+    "select": "multi"
+  } );
+  
+  // https://datatables.net/reference/event/select
+  $table.on( 'select', function ( e, dt, type, indexes ) {
+    console.log( 'select' );
+
+    var rowsData = $table.rows( { "selected": true } ).data();
+
+    console.log( 'rows data', rowsData );
+  } );
+
+  // $tableBody.on( 'click', 'tr', function trOnClick() {
+  //   var row = $( this );
+  //   var rowCheckboxCell = row.children( '.personal-expense-yn' ).eq( 0 );
+  //   var checkbox = rowCheckboxCell.children( 'input[type="checkbox"]' );
+
+  //   if ( checkbox.is( ':checked' ) ) {
+  //     checkbox.prop( 'checked', false );
+  //     row.removeClass( 'selected' );
+  //   } else {
+  //     checkbox.prop( 'checked', true );
+  //     row.addClass( 'selected' );
+  //   }
+  // } );
+}
  
 function handleFileSelect( evt ) {
   var file = evt.target.files[0];
@@ -38,109 +178,7 @@ function handleFileSelect( evt ) {
   Papa.parse( file, {
     header: true,
     dynamicTyping: true,
-    complete: function ( results ) {
-      var datum;
-      var headers;
-      var excludeHeadersUI = [ 'Transaction Type', 'Account Type', 'Reference No.', 'Credits', 'Debits' ];
-
-      data = results.data;
-
-      // console.log( 'data', data );
-
-      for ( var i = 0; i < data.length; i++ ) {
-        datum = data[i];
-
-        if ( i === 0 ) {
-          headers = Object.keys( datum );
-
-          console.log( 'headers', headers );
-
-          headers.forEach( function ( element, index, array ) {
-            if ( excludeHeadersUI.indexOf( element ) === -1 ) {
-              $tableHeaderRow.append( '<th id="th-' + ( index + 1 ) + '">' + element + '</th>' );
-            }
-          } );
-        }
-
-        /*
-          Alternatively: datum['Transaction Type'].toLowerCase().indexOf( 'debit' ) !== -1
-        */
-        if ( !!datum.Debits && !!!datum.Credits ) {
-          debits.push( datum );
-        } else if ( !!datum.Credits && !!!datum.Debits ) {
-          credits.push( datum );
-        }
-
-        // console.log( 'datum', datum );
-      } // for
-
-      $numCredits.html( credits.length );
-      $numDebits.html( debits.length );
-
-      console.log( 'credits', credits );
-      console.log( 'debits', debits );
-
-      // http://stackoverflow.com/a/15912608/214325
-      unique = debits.filter( function ( transaction ) {
-        var expense = transaction.Debits;
-        var paidBack = false;
-
-        // return ( credits.indexOf( transaction ) == -1 );
-
-        for ( var i = 0; i < credits.length; i++ ) {
-          if ( expense === credits[i].Credits ) {
-            paidBack = true;
-
-            break;
-          }
-        }
-
-        return !paidBack;
-      } );
-
-      console.log( 'unique', unique );
-
-      $numUnique.html( unique.length );
-
-      $info.prop( 'hidden', false );
-
-      // unique
-      debits
-        .forEach( function ( debit, index, debits ) {
-          var tr = document.createElement( 'tr' );
-
-          var td;
-
-          headers.forEach( function ( header, index, headers ) {
-            var cellContents;
-
-            if ( excludeHeadersUI.indexOf( header ) === -1 ) {
-              td = document.createElement( 'td' );
-
-              td.className = header.toLowerCase().replace( ' ', '-' );
-
-              // https://github.com/openexchangerates/accounting.js
-              // bower install --save git@github.com:openexchangerates/accounting.js.git#master
-              if ( header === 'Amount' ) {
-                cellContents = debit[header].toFixed( 2 );
-              } else {
-                cellContents = debit[header];
-              }
-
-              td.innerHTML = cellContents;
-
-              tr.appendChild( td );
-            }
-          } );
-
-          $tableBody.append( tr );
-        } ); // .forEach
-
-      $table.DataTable( {
-        "iDisplayLength": 100,
-        "order": [ [ 0, "desc" ] ]
-      } );
-    } // complete
+    complete: csvParsingComplete // complete
   } ); // parse
 }
 
