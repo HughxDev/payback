@@ -15,6 +15,7 @@
   ## Wishlist
   - Simple CSV/JSON Export parsing
   - To solve limitation #2, allow user to pair transactions manually to cancel them out, rather than automatically?
+  - Use date-biasing to suggest possible paybacks
 */
 // (function () {
 "use strict";
@@ -29,12 +30,20 @@ var $tableHeaderRow = $( '#table-header-row' );
 var $tableBody = $( '#table-body' );
 
 var $info = $( '#info' );
+var $totalAmountOwed = $( '#total-amount-owed' );
 
 // var $selected = 
 
 // var $numDebits = $( '#num-debits' );
 // var $numCredits = $( '#num-credits' );
 // var $numUnique = $( '#num-unique' );
+
+var totalAmountOwed = 0;
+
+// http://stackoverflow.com/a/9716488/214325
+function isNumeric( n ) {
+  return !isNaN( parseFloat( n ) ) && isFinite( n );
+}
 
 function csvParsingComplete( results ) {
   var datum;
@@ -152,9 +161,34 @@ function csvParsingComplete( results ) {
   $table.on( 'select', function ( e, dt, type, indexes ) {
     console.log( 'select' );
 
-    var rowsData = $table.rows( { "selected": true } ).data();
+    var rows = $table.rows( { "selected": true } );
+    var rowData = rows.data();
+    var rowCount = rows.count();
+    var float;
 
-    console.log( 'rows data', rowsData );
+    console.log( 'rowCount', rowCount );
+
+    totalAmountOwed = 0;
+
+    for ( var prop in rowData ) {
+      if ( isNumeric( prop ) ) { // only rows have numeric indexes; unfortunately mixed in with misc. dataTables garbage
+        // Index 2 is the "Amount" cell.
+        float = parseFloat( rowData[prop][2] ); // .toFixed( 2 );
+
+        console.log( 'float', float );
+
+        totalAmountOwed += float;
+
+        $totalAmountOwed.html( '$' + ( totalAmountOwed * -1 ).toFixed( 2 ) );
+
+        console.log( 'totalAmountOwed', totalAmountOwed );
+
+        // potentially dangerous as object properties don't have to be in any order
+        if ( prop === rowCount ) {
+          break;
+        }
+      }
+    }
   } );
 
   // $tableBody.on( 'click', 'tr', function trOnClick() {
@@ -182,7 +216,7 @@ function handleFileSelect( evt ) {
   } ); // parse
 }
 
-$(document).ready(function(){
+$( document ).ready( function () {
   $( "#csv-file" ).change( handleFileSelect );
-});
+} );
 // })();

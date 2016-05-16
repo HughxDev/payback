@@ -28,6 +28,13 @@ tr {
   cursor: pointer;
 }
 
+.total {
+  text-align: center;
+  font-size: 1.1em;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 /*----------------------*/
 
 .dataTables_length {
